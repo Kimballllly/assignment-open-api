@@ -60,11 +60,42 @@ export class TiktokService {
       const response = await axios.get(`${this.apiUrl}/api/user/followings`, {
         params: { secUid, count, minCursor, maxCursor },
         headers: {
-            'X-Rapidapi-Key': this.apiKey,
-            'X-Rapidapi-Host': this.apiHost,
+          'X-Rapidapi-Key': this.apiKey,
+          'X-Rapidapi-Host': this.apiHost,
         },
       });
-      return response.data;
+  
+      // Transform the response into a custom design
+      const customizedResponse = {
+        requestDetails: {
+          secUid,
+          count,
+          minCursor,
+          maxCursor,
+        },
+        metadata: {
+          totalFollowings: response.data.total || 0,
+          hasMore: response.data.hasMore || false,
+          maxCursor: response.data.maxCursor,
+          minCursor: response.data.minCursor,
+          logId: response.data.extra?.logid || '',
+        },
+        followings: response.data.userList.map((user: any) => ({
+          username: user.user.uniqueId,
+          nickname: user.user.nickname,
+          avatar: user.user.avatarThumb,
+          verified: user.user.verified,
+          bio: user.user.signature,
+          stats: {
+            followers: user.stats.followerCount,
+            followings: user.stats.followingCount,
+            likes: user.stats.heartCount,
+            videos: user.stats.videoCount,
+          },
+        })),
+      };
+  
+      return customizedResponse;
     } catch (error) {
       throw new HttpException(
         error.response?.data || 'Error fetching user followings',
@@ -72,4 +103,5 @@ export class TiktokService {
       );
     }
   }
+  
 }
