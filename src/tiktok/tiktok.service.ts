@@ -14,13 +14,60 @@ export class TiktokService {
         headers: {
           'X-Rapidapi-Key': this.apiKey,
           'X-Rapidapi-Host': this.apiHost,
-          'Host': this.apiHost,
+          Host: this.apiHost,
+        },
+      });
+
+      const rawData = response.data.userInfo;
+      const formattedResponse = this.formatUserInfo(rawData);
+
+      return formattedResponse;
+    } catch (error) {
+      throw new HttpException(
+        error.response?.data || 'Error fetching user info',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  private formatUserInfo(data: any) {
+    const user = data.user;
+    const stats = data.stats;
+
+    return {
+      username: user.uniqueId,
+      name: user.nickname,
+      verified: user.verified,
+      bio: user.signature,
+      website: user.bioLink?.link || 'Not available',
+      region: user.region,
+      language: user.language,
+      profilePicture: user.avatarLarger,
+      stats: {
+        followers: stats.followerCount,
+        videos: stats.videoCount,
+        likes: stats.heart,
+      },
+      highlights: [
+        user.signature || "No bio available.",
+        "Check out the account for fun and engaging content!",
+      ],
+    };
+  }
+
+  async getUserFollowings(secUid: string, count = 50, minCursor = 0, maxCursor = 0) {
+    try {
+      const response = await axios.get(`${this.apiUrl}/api/user/followings`, {
+        params: { secUid, count, minCursor, maxCursor },
+        headers: {
+            'X-Rapidapi-Key': this.apiKey,
+            'X-Rapidapi-Host': this.apiHost,
         },
       });
       return response.data;
     } catch (error) {
       throw new HttpException(
-        error.response?.data || 'Error fetching user info',
+        error.response?.data || 'Error fetching user followings',
         HttpStatus.BAD_REQUEST,
       );
     }

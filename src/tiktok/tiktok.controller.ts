@@ -10,4 +10,13 @@ export class TiktokController {
     return this.tiktokService.getUserInfo(uniqueId);
   }
 
+  @Get('user-followings')
+  async getUserFollowings(
+    @Query('secUid') secUid: string,
+    @Query('count') count: number,
+    @Query('minCursor') minCursor: number,
+    @Query('maxCursor') maxCursor: number,
+  ) {
+    return this.tiktokService.getUserFollowings(secUid, count, minCursor, maxCursor);
+  }
 }
